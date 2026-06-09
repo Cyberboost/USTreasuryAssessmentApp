@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TTB Label Verification Prototype</title>
+  <style>
+    :root { font-family: Arial, sans-serif; color: #111; }
+    body { margin: 0; background: #f5f7fa; }
+    main { max-width: 980px; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 2rem; margin-bottom: .25rem; }
+    .card { background: #fff; border-radius: 12px; padding: 1rem; margin-top: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+    .dropzone { border: 3px dashed #1a73e8; border-radius: 10px; padding: 2rem; text-align: center; background: #f0f6ff; font-size: 1.2rem; }
+    textarea { width: 100%; min-height: 140px; font-size: 1rem; padding: .75rem; }
+    button { font-size: 1.1rem; padding: .75rem 1rem; border-radius: 8px; border: 0; margin-right: .5rem; cursor: pointer; }
+    .primary { background: #1a73e8; color: #fff; }
+    .secondary { background: #137333; color: #fff; }
+    #status { font-size: 1.1rem; margin-top: .75rem; }
+    pre { background: #1f2937; color: #e5e7eb; border-radius: 8px; padding: 1rem; overflow: auto; }
+    .note { font-size: 0.95rem; color: #333; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Alcohol Label Verification</h1>
+  <p>Upload one or many label images. This prototype compares OCR text to your application data.</p>
+
+  <section class="card">
+    <div class="dropzone" id="dropzone">
+      Drag and drop labels here or <strong>choose files</strong>.
+      <input id="files" type="file" accept="image/*" multiple style="display:block; margin: 1rem auto 0; font-size: 1rem;" />
+      <div id="fileCount"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Application Data (JSON)</h2>
+    <textarea id="applicationJson">{
+  "brand_name": "STONE'S THROW",
+  "class_type": "WHISKEY",
+  "alcohol_content": "45% ALC/VOL",
+  "net_contents": "750 ML",
+  "government_warning": "GOVERNMENT WARNING: (1) ACCORDING TO THE SURGEON GENERAL, WOMEN SHOULD NOT DRINK ALCOHOLIC BEVERAGES DURING PREGNANCY BECAUSE OF THE RISK OF BIRTH DEFECTS. (2) CONSUMPTION OF ALCOHOLIC BEVERAGES IMPAIRS YOUR ABILITY TO DRIVE A CAR OR OPERATE MACHINERY, AND MAY CAUSE HEALTH PROBLEMS."
+}</textarea>
+    <p class="note">For batch mode, one application JSON is applied to all uploaded labels in this prototype.</p>
+    <button id="verifyOne" class="primary">Verify First Label</button>
+    <button id="startBatch" class="secondary">Start Batch Verification</button>
+    <div id="status" aria-live="polite"></div>
+  </section>
+
+  <section class="card">
+    <h2>Results</h2>
+    <a id="download" href="#" style="display:none; font-size:1.1rem;">Download Batch JSON Results</a>
+    <pre id="results">No results yet.</pre>
+  </section>
+</main>
+<script>
+  const filesInput = document.getElementById('files');
+  const dropzone = document.getElementById('dropzone');
+  const statusEl = document.getElementById('status');
+  const resultsEl = document.getElementById('results');
+  const fileCountEl = document.getElementById('fileCount');
+  const downloadEl = document.getElementById('download');
+
+  const updateCount = () => {
+    const count = filesInput.files.length;
+    fileCountEl.textContent = count ? `${count} file(s) selected` : '';
+  };
+
+  ['dragenter', 'dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault();
+    dropzone.style.background = '#e6f0ff';
+  }));
+
+  ['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault();
+    dropzone.style.background = '#f0f6ff';
+  }));
+
+  dropzone.addEventListener('drop', (e) => {
+    filesInput.files = e.dataTransfer.files;
+    updateCount();
+  });
+
+  filesInput.addEventListener('change', updateCount);
+
+  const getApplicationJson = () => document.getElementById('applicationJson').value;
+
+  document.getElementById('verifyOne').addEventListener('click', async () => {
+    if (!filesInput.files.length) return alert('Please select at least one image.');
+
+    statusEl.textContent = 'Verifying first image...';
+    const form = new FormData();
+    form.append('image', filesInput.files[0]);
+    form.append('application_json', getApplicationJson());
+
+    const response = await fetch('/api/verify', { method: 'POST', body: form });
+    const data = await response.json();
+    if (!response.ok) {
+      statusEl.textContent = data.detail || 'Verification failed.';
+      return;
+    }
+
+    statusEl.textContent = `Done in ${data.processing_time_ms} ms`;
+    resultsEl.textContent = JSON.stringify(data, null, 2);
+  });
+
+  document.getElementById('startBatch').addEventListener('click', async () => {
+    if (!filesInput.files.length) return alert('Please select one or more images.');
+    statusEl.textContent = 'Starting batch...';
+    downloadEl.style.display = 'none';
+
+    const form = new FormData();
+    for (const file of filesInput.files) form.append('images', file);
+    form.append('application_json', getApplicationJson());
+
+    const startResponse = await fetch('/api/batch/start', { method: 'POST', body: form });
+    const startData = await startResponse.json();
+    if (!startResponse.ok) {
+      statusEl.textContent = startData.detail || 'Could not start batch.';
+      return;
+    }
+
+    const jobId = startData.job_id;
+    statusEl.textContent = `Batch started: ${jobId}`;
+
+    const poll = setInterval(async () => {
+      const statusResponse = await fetch(`/api/batch/${jobId}`);
+      const statusData = await statusResponse.json();
+      statusEl.textContent = `Progress: ${statusData.processed}/${statusData.total}`;
+
+      if (statusData.status === 'completed') {
+        clearInterval(poll);
+        const resultsResponse = await fetch(`/api/batch/${jobId}/results`);
+        const resultData = await resultsResponse.json();
+        resultsEl.textContent = JSON.stringify(resultData, null, 2);
+
+        downloadEl.href = `/api/batch/${jobId}/results`;
+        downloadEl.style.display = 'inline-block';
+        statusEl.textContent = `Batch complete: ${statusData.total} file(s) processed.`;
+      }
+    }, 1000);
+  });
+</script>
+</body>
+</html>
