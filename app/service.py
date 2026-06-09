@@ -11,11 +11,13 @@ from app.matching import extract_fields, verify_extracted_fields
 
 OCR_CACHE: dict[str, str] = {}
 OCR_CACHE_MAX = 512
+TESSERACT_OCR_CONFIG = "--oem 1 --psm 6"
 
 
 def _extract_text(image_bytes: bytes) -> str:
     image = preprocess_image(image_bytes)
-    return pytesseract.image_to_string(image, config="--oem 1 --psm 6")
+    # --oem 1: LSTM engine. --psm 6: assume a single uniform block of text.
+    return pytesseract.image_to_string(image, config=TESSERACT_OCR_CONFIG)
 
 
 def verify_image_against_application(

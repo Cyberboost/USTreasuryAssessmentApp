@@ -3,6 +3,9 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
+ADAPTIVE_THRESHOLD_BLOCK_SIZE = 31
+ADAPTIVE_THRESHOLD_C = 11
+
 
 def preprocess_image(image_bytes: bytes) -> np.ndarray:
     image_array = np.frombuffer(image_bytes, dtype=np.uint8)
@@ -17,8 +20,8 @@ def preprocess_image(image_bytes: bytes) -> np.ndarray:
         255,
         cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
         cv2.THRESH_BINARY,
-        31,
-        11,
+        ADAPTIVE_THRESHOLD_BLOCK_SIZE,
+        ADAPTIVE_THRESHOLD_C,
     )
 
     coords = np.column_stack(np.where(normalized < 200))

@@ -37,6 +37,18 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Build from external `D:` drive (Windows)
+
+If your local repository is on an external `D:` drive, run all commands from that clone path, for example:
+
+```powershell
+cd D:\USTreasuryAssessmentApp
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
 Install Tesseract locally if missing:
 
 - Ubuntu/Debian: `sudo apt-get install tesseract-ocr`

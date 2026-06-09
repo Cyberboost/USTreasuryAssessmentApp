@@ -15,6 +15,7 @@ GOVERNMENT_WARNING_REGEX = re.compile(
     r"(GOVERNMENT WARNING:\s*\(1\).*?\(2\).*?HEALTH PROBLEMS\.)",
     re.IGNORECASE | re.DOTALL,
 )
+ALCOHOL_CONTENT_MATCH_THRESHOLD = 0.9
 
 
 def normalize_spaces(value: str) -> str:
@@ -114,7 +115,7 @@ def verify_extracted_fields(
     label_alcohol = label_fields.get("alcohol_content", "")
     app_alcohol = application_fields.get("alcohol_content", "")
     alcohol_confidence = similarity(normalize_alcohol_content(label_alcohol), normalize_alcohol_content(app_alcohol))
-    alcohol_match = alcohol_confidence >= 0.9 and bool(app_alcohol)
+    alcohol_match = alcohol_confidence >= ALCOHOL_CONTENT_MATCH_THRESHOLD and bool(app_alcohol)
 
     label_net = label_fields.get("net_contents", "")
     app_net = application_fields.get("net_contents", "")
