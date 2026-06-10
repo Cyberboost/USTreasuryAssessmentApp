@@ -99,6 +99,17 @@ Generated samples include:
 - OCR quality depends on image clarity and local Tesseract model quality.
 - In-memory batch state resets when the app process restarts.
 
+## Deploy to Render.com (free, shareable link)
+
+The fastest way to get a public `https://<your-app>.onrender.com` URL:
+
+1. Sign up at [render.com](https://render.com) (free, no credit card required).
+2. Click **New → Web Service** and connect this GitHub repository.
+3. Render detects `render.yaml` automatically — accept the defaults and click **Create Web Service**.
+4. Wait ~3 minutes for the first build. Your public URL will appear in the Render dashboard.
+
+> **Note:** Free instances spin down after 15 minutes of inactivity. The first request after a cold start takes ~30 seconds.
+
 ## Azure deployment
 
 This repository includes a `Dockerfile` suitable for:
