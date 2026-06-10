@@ -1,8 +1,29 @@
-# USTreasuryAssessmentApp Prototype
+# USTreasuryAssessmentApp
 
-AI-powered alcohol label verification prototype for TTB label reviewers.
+AI-powered alcohol label verification prototype for TTB-style label review workflows.
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Cyberboost/USTreasuryAssessmentApp)
+[![CI](https://github.com/Cyberboost/USTreasuryAssessmentApp/actions/workflows/ci.yml/badge.svg)](https://github.com/Cyberboost/USTreasuryAssessmentApp/actions/workflows/ci.yml)
+
+## Hiring Manager Review
+
+This is a deployable FastAPI work sample that turns a regulatory review workflow into a working prototype: upload alcohol label images, extract text with OCR, compare the label against submitted application fields, and return structured pass/fail results.
+
+What it demonstrates:
+
+- Product thinking for a compliance-adjacent government workflow.
+- Python/FastAPI API design with a browser-based review UI.
+- OCR preprocessing with OpenCV, Tesseract, field extraction, normalization, and confidence scoring.
+- Single-label and batch processing paths, including progress polling and JSON result download.
+- Containerized deployment through Docker, Render Blueprint config, and Azure-ready container packaging.
+- Automated validation through GitHub Actions, unit tests, and Docker image builds.
+
+Fast review path:
+
+1. Click **Deploy to Render** to create a temporary public review URL.
+2. Open the generated Render URL and upload one of the generated sample label images.
+3. Review `/health`, `/api/verify`, and `/api/batch/start` for the API surface.
+4. Check the CI badge for the current test and Docker build status.
 
 ## What this prototype does
 
@@ -17,7 +38,8 @@ AI-powered alcohol label verification prototype for TTB label reviewers.
 - OCR: Tesseract (`pytesseract`) + OpenCV preprocessing
 - Matching: Regex + normalization + similarity scoring
 - Frontend: Accessible single-page UI served from FastAPI
-- Containerization: Dockerfile for Azure App Service / Azure Container Apps
+- Containerization: Dockerfile for Render, Azure App Service, and Azure Container Apps
+- CI/CD: GitHub Actions for `pytest` and Docker build validation
 
 ## API result format
 
@@ -67,7 +89,7 @@ Open: `http://127.0.0.1:8000`
 ## Tests
 
 ```bash
-pytest tests/test_matching.py
+pytest
 ```
 
 ## Generate synthetic test labels
