@@ -2,6 +2,8 @@
 
 AI-powered alcohol label verification prototype for TTB label reviewers.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Cyberboost/USTreasuryAssessmentApp)
+
 ## What this prototype does
 
 - Upload one label image and compare OCR output against application JSON fields.
@@ -99,14 +101,18 @@ Generated samples include:
 - OCR quality depends on image clarity and local Tesseract model quality.
 - In-memory batch state resets when the app process restarts.
 
-## Deploy to Render.com (free, shareable link)
+## Deploy to Render.com
 
-The fastest way to get a public `https://<your-app>.onrender.com` URL:
+Use the Deploy to Render button at the top of this README, or open this link directly:
+
+`https://render.com/deploy?repo=https://github.com/Cyberboost/USTreasuryAssessmentApp`
+
+Render will read `render.yaml`, build the Docker image, and create a public `https://<your-app>.onrender.com` URL.
 
 1. Sign up at [render.com](https://render.com) (free, no credit card required).
-2. Click **New → Web Service** and connect this GitHub repository.
-3. Render detects `render.yaml` automatically — accept the defaults and click **Create Web Service**.
-4. Wait ~3 minutes for the first build. Your public URL will appear in the Render dashboard.
+2. Click the deploy button or direct link above.
+3. Review the service settings and click **Apply**.
+4. Wait for the first Docker build to finish. Your public URL will appear in the Render dashboard.
 
 > **Note:** Free instances spin down after 15 minutes of inactivity. The first request after a cold start takes ~30 seconds.
 

@@ -3,4 +3,5 @@ services:
     name: ttb-label-prototype
     runtime: docker
     plan: free
+    autoDeploy: false
     healthCheckPath: /health
